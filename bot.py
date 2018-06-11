@@ -7,8 +7,8 @@ import telebot
 import re
 
 bot = telebot.TeleBot(config.token)
-#TODO: отдельно keyboards?
-#TODO: вынести отдельно диалоги на кнопках и ответах
+# TODO: отдельно keyboards?
+# TODO: вынести отдельно диалоги на кнопках и ответах
 # keyboards
 # ------------------------------
 keyboard_telephone = telebot.types.ReplyKeyboardMarkup(one_time_keyboard=True)
@@ -114,29 +114,25 @@ def add_owner_phone(message):
     db_worker.close()
 
 
-@bot.message_handler(
-    func=lambda message: db_worker1.get_current_status(message.chat.id) == config.states_user.get('owner_phone'))
 def add_owner_name(message):
     db_worker = DataBase()
     db_worker.write_data_owner(message)
     bot.send_message(message.chat.id, 'Как ваше имя?')
     db_worker.write_dialog_status(message.chat.id, config.states_user.get('owner_name'))
     db_worker.close()
+    bot.register_next_step_handler(message, add_owner_first_name)
 
 
-@bot.message_handler(
-    func=lambda message: db_worker1.get_current_status(message.chat.id) == config.states_user.get('owner_name'))
 def add_owner_first_name(message):
     db_worker = DataBase()
     db_worker.write_data_owner(message)
     bot.send_message(message.chat.id, 'А фамилия?')
     db_worker.write_dialog_status(message.chat.id, config.states_user.get('owner_first_name'))
     db_worker.close()
+    bot.register_next_step_handler(message, add_owner_second_name)
 
 
-@bot.message_handler(
-    func=lambda message: db_worker1.get_current_status(message.chat.id) == config.states_user.get('owner_first_name'))
-def add_user(message):
+def add_owner_second_name(message):
     db_worker = DataBase()
     db_worker.write_data_owner(message)
     bot.send_message(message.chat.id, 'Вы успешно добавлены!')
@@ -144,8 +140,6 @@ def add_user(message):
     db_worker.write_dialog_status(message.chat.id, config.states_user.get('sleep'))
     db_worker.close()
     menu_start(message)
-
-
 # ------------------------------
 
 
@@ -194,20 +188,28 @@ def menu_edit_choose_pet(message):
         keyboard_pet_owner = db_worker.make_keyboard_pets(message)
         bot.send_message(message.chat.id, 'Выберите питомца',
                          reply_markup=keyboard_pet_owner)
-        bot.register_next_step_handler(message, menu_edit_pet)
+        bot.register_next_step_handler(message, menu_edit_pet_key)
     else:
         bot.send_message(message.chat.id, 'У вас нет питомцев!')
         answer_menu_edit(message)
 
-#TODO: this
-def menu_edit_pet(msg):
-    vv = msg.text
-    bot.send_message(msg.chat.id, 'Выберите редактируемую опцию', reply_markup=keyboard_edit_pet)
-    bot.register_next_step_handler(msg, answer_menu_edit_pet(vv))
 
-#TODO: this
-def answer_menu_edit_pet(msg, name):
-    print(name)
+def menu_edit_pet_key(msg):
+    db_worker = DataBase()
+    if db_worker.check_pet_owner(msg):
+        db_worker.set_status_type_pet(msg)
+        menu_edit_pet(msg)
+    else:
+        get_error_message(msg)
+        menu_edit(msg)
+
+def menu_edit_pet(msg):
+    bot.send_message(msg.chat.id, 'Выберите редактируемую опцию', reply_markup=keyboard_edit_pet)
+    bot.register_next_step_handler(msg, answer_menu_edit_pet)
+
+
+
+def answer_menu_edit_pet(msg):
     if msg.text == u'Порода':
         edit_breed(msg)
     elif msg.text == u'Вес':
@@ -215,6 +217,8 @@ def answer_menu_edit_pet(msg, name):
     elif msg.text == u'О питомце':
         edit_info(msg)
     elif msg.text == u'Назад':
+        db_worker = DataBase()
+        db_worker.set_sleep_status_pet(msg)
         menu_edit(msg)
     else:
         get_error_message(msg)
@@ -228,13 +232,13 @@ def edit_breed(msg):
     db_worker.close()
     bot.register_next_step_handler(msg, answer_edit_breed)
 
-#TODO
+
 def answer_edit_breed(msg):
     db_worker = DataBase()
     db_worker.write_data_pet(msg)
     db_worker.write_dialog_status(msg.chat.id, config.states_user.get('sleep'))
     db_worker.close()
-    bot.send_message(msg.chat.id, 'Порода записана')
+    bot.send_message(msg.chat.id, 'Информация записана')
     menu_edit_pet(msg)
 
 
@@ -245,24 +249,24 @@ def edit_weight(msg):
     db_worker.close()
     bot.register_next_step_handler(msg, answer_edit_weight)
 
-#TODO
+
 def answer_edit_weight(msg):
     db_worker = DataBase()
     db_worker.write_data_pet(msg)
     db_worker.write_dialog_status(msg.chat.id, config.states_user.get('sleep'))
     db_worker.close()
-    bot.send_message(msg.chat.id, 'Вес записан')
+    bot.send_message(msg.chat.id, 'Информация записана')
     menu_edit_pet(msg)
 
 
 def edit_info(msg):
-    bot.send_message(msg.chat.id, 'Введите породу вашего питомца')
+    bot.send_message(msg.chat.id, 'Введите информацию вашего питомца')
     db_worker = DataBase()
     db_worker.write_dialog_status(msg.chat.id, config.states_user.get('edit_info'))
     db_worker.close()
     bot.register_next_step_handler(msg, answer_edit_info)
 
-#TODO
+
 def answer_edit_info(msg):
     db_worker = DataBase()
     db_worker.write_data_pet(msg)
@@ -285,9 +289,9 @@ def answer_menu_edit_owner(msg):
     elif msg.text == u'Отчество':
         edit_second_name(msg)
     elif msg.text == u'Адрес проживания':
-        menu_address(msg)
+        edit_address(msg)
     elif msg.text == u'Почта':
-        menu_email(msg)
+        edit_email(msg)
     elif msg.text == u'Назад':
         menu_edit(msg)
     else:
@@ -298,21 +302,88 @@ def answer_menu_edit_owner(msg):
 def edit_name(msg):
     bot.send_message(msg.chat.id, 'Введите новое имя')
     db_worker = DataBase()
-    db_worker.write_dialog_status(msg.chat.id, config.states_user.get('edit_info'))
+    db_worker.write_dialog_status(msg.chat.id, config.states_user.get('edit_name'))
     db_worker.close()
-    bot.register_next_step_handler(msg, answer_edit_info)
+    bot.register_next_step_handler(msg, answer_edit_name)
+
+
+def answer_edit_name(msg):
+    db_worker = DataBase()
+    db_worker.write_data_owner(msg)
+    db_worker.write_dialog_status(msg.chat.id, config.states_user.get('sleep'))
+    db_worker.close()
+    bot.send_message(msg.chat.id, 'Информация записана')
+    menu_edit_owner(msg)
+
 
 def edit_first_name(msg):
-    return
+    bot.send_message(msg.chat.id, 'Введите новую фамилию')
+    db_worker = DataBase()
+    db_worker.write_dialog_status(msg.chat.id, config.states_user.get('edit_first_name'))
+    db_worker.close()
+    bot.register_next_step_handler(msg, answer_edit_first_name)
+
+
+def answer_edit_first_name(msg):
+    db_worker = DataBase()
+    db_worker.write_data_owner(msg)
+    db_worker.write_dialog_status(msg.chat.id, config.states_user.get('sleep'))
+    db_worker.close()
+    bot.send_message(msg.chat.id, 'Информация записана')
+    menu_edit_owner(msg)
+
 
 def edit_second_name(msg):
-    return
+    bot.send_message(msg.chat.id, 'Введите новое отчество')
+    db_worker = DataBase()
+    db_worker.write_dialog_status(msg.chat.id, config.states_user.get('edit_second_name'))
+    db_worker.close()
+    bot.register_next_step_handler(msg, answer_edit_second_name)
 
-def menu_address(msg):
-    return
 
-def menu_email(msg):
-    return
+def answer_edit_second_name(msg):
+    db_worker = DataBase()
+    db_worker.write_data_owner(msg)
+    db_worker.write_dialog_status(msg.chat.id, config.states_user.get('sleep'))
+    db_worker.close()
+    bot.send_message(msg.chat.id, 'Информация записана')
+    menu_edit_owner(msg)
+
+
+def edit_address(msg):
+    bot.send_message(msg.chat.id, 'Введите адрес')
+    db_worker = DataBase()
+    db_worker.write_dialog_status(msg.chat.id, config.states_user.get('edit_address'))
+    db_worker.close()
+    bot.register_next_step_handler(msg, answer_edit_address)
+
+
+def answer_edit_address(msg):
+    db_worker = DataBase()
+    db_worker.write_data_owner(msg)
+    db_worker.write_dialog_status(msg.chat.id, config.states_user.get('sleep'))
+    db_worker.close()
+    bot.send_message(msg.chat.id, 'Информация записана')
+    menu_edit_owner(msg)
+
+
+def edit_email(msg):
+    bot.send_message(msg.chat.id, 'Введите свою электронную почту')
+    db_worker = DataBase()
+    db_worker.write_dialog_status(msg.chat.id, config.states_user.get('edit_email'))
+    db_worker.close()
+    bot.register_next_step_handler(msg, answer_edit_email)
+
+
+def answer_edit_email(msg):
+    db_worker = DataBase()
+    db_worker.write_data_owner(msg)
+    db_worker.write_dialog_status(msg.chat.id, config.states_user.get('sleep'))
+    db_worker.close()
+    bot.send_message(msg.chat.id, 'Информация записана')
+    menu_edit_owner(msg)
+
+
 # ------------------------------
 
 # appointment

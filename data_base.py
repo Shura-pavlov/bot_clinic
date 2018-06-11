@@ -48,7 +48,6 @@ class DataBase:
     def check_pet_gender(self, msg):
         return (msg.text == u'Мальчик') or (msg.text == u'Девочка')
 
-
     def check_appointment_type(self, msg):
         with self.connection:
             self.cursor.execute("SELECT COUNT(*) FROM tappointmenttype WHERE nameappointmenttype= %s", [msg.text])
@@ -65,18 +64,42 @@ class DataBase:
                                 [msg.text, self.get_owner_id(msg)])
             return bool(self.cursor.fetchone()[0])
 
+    def set_status_type_pet(self, msg):
+        with self.connection:
+            self.cursor.execute("UPDATE tpet SET status_type = %s WHERE petname = %s AND id_owner = %s",
+                                [4, msg.text, self.get_owner_id(msg)])
+            self.connection.commit()
+
     def write_data_owner(self, msg):
         with self.connection:
             status = self.get_current_status(msg.chat.id)
             if status == config.states_user.get('owner_phone'):
                 self.cursor.execute("INSERT INTO towner (id_chat_owner, ownernumber) VALUES (%s, %s)",
                                     [msg.chat.id, msg.contact.phone_number])
+
             if status == config.states_user.get('owner_name'):
                 self.cursor.execute("UPDATE towner SET ownername = %s WHERE id_chat_owner = %s",
                                     [msg.text, msg.chat.id])
+
             if status == config.states_user.get('owner_first_name'):
                 self.cursor.execute("UPDATE towner SET ownerfirstname = %s WHERE id_chat_owner = %s",
                                     [msg.text, msg.chat.id])
+
+            if status == config.states_user.get('edit_name'):
+                self.cursor.execute("UPDATE towner SET ownername = %s WHERE id_chat_owner = %s", [msg.text, msg.chat.id])
+
+            if status == config.states_user.get('edit_first_name'):
+                self.cursor.execute("UPDATE towner SET ownerfirstname = %s WHERE id_chat_owner = %s", [msg.text, msg.chat.id])
+
+            if status == config.states_user.get('edit_second_name'):
+                self.cursor.execute("UPDATE towner SET ownermiddlename = %s WHERE id_chat_owner = %s", [msg.text, msg.chat.id])
+
+            if status == config.states_user.get('edit_address'):
+                self.cursor.execute("UPDATE towner SET owneraddress = %s WHERE id_chat_owner = %s", [msg.text, msg.chat.id])
+
+            if status == config.states_user.get('edit_email'):
+                self.cursor.execute("UPDATE towner SET owneremail = %s WHERE id_chat_owner = %s", [msg.text, msg.chat.id])
+
             self.connection.commit()
 
     def write_data_appointment(self, msg):
@@ -135,6 +158,32 @@ class DataBase:
                 gender = (msg.text == u'Мальчик')
                 self.cursor.execute("UPDATE tpet SET gender = %s WHERE id_pet = %s", [gender, id_pet])
 
+            if status == config.states_user.get('edit_breed'):
+                self.cursor.execute("SELECT id_pet FROM tpet WHERE id_owner = %s AND status_type = %s",
+                                    [self.get_owner_id(msg), 4])
+                id_pet = self.cursor.fetchone()[0]
+                self.cursor.execute("UPDATE tpet SET breed = %s WHERE id_pet = %s", [msg.text, id_pet])
+
+            if status == config.states_user.get('edit_weight'):
+                self.cursor.execute("SELECT id_pet FROM tpet WHERE id_owner = %s AND status_type = %s",
+                                    [self.get_owner_id(msg), 4])
+                id_pet = self.cursor.fetchone()[0]
+                self.cursor.execute("UPDATE tpet SET weight = %s WHERE id_pet = %s", [msg.text, id_pet])
+
+            if status == config.states_user.get('edit_info'):
+                self.cursor.execute("SELECT id_pet FROM tpet WHERE id_owner = %s AND status_type = %s",
+                                    [self.get_owner_id(msg), 4])
+                id_pet = self.cursor.fetchone()[0]
+                self.cursor.execute("UPDATE tpet SET info = %s WHERE id_pet = %s", [msg.text, id_pet])
+
+            self.connection.commit()
+
+    def set_sleep_status_pet(self, msg):
+        with self.connection:
+            self.cursor.execute("SELECT id_pet FROM tpet WHERE id_owner = %s AND status_type = %s",
+                                [self.get_owner_id(msg), 4])
+            id_pet = self.cursor.fetchone()[0]
+            self.cursor.execute("UPDATE tpet SET status_type = %s WHERE id_pet = %s", [3, id_pet])
             self.connection.commit()
 
     def get_current_status(self, id):
