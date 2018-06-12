@@ -5,8 +5,10 @@ import config
 from data_base import DataBase
 import telebot
 import re
+import datetime
 
 bot = telebot.TeleBot(config.token)
+# TODO: proxy-class refactoring
 # TODO: отдельно keyboards?
 # TODO: вынести отдельно диалоги на кнопках и ответах
 # keyboards
@@ -70,9 +72,26 @@ keyboard_inline_appointment_delete_shure.add(button_no_in, button_yes_in)
 # for n in list(cursor):
 #     keyboard_data_time.add(str(n[0]))
 # ------------------------------
+def get_error_message(message):
+    bot.send_message(message.chat.id, 'Не понимаю, но очень стараюсь. Пожалуйста, попробуйте заново')
 
 
+# cleaning db
 @bot.message_handler(commands=["start"])
+def test(m):
+    db = DataBase()
+    key = db.get_keyboard_date()
+    bot.send_chat_action(m.chat.id, 'typing')
+    bot.send_message(m.chat.id, 'Test', reply_markup=key)
+    bot.register_next_step_handler(m, test_2)
+
+def test_2(m):
+    res = re.findall(r'\d+', m.text)
+    day = datetime.date(int(res.pop()), int(res.pop()), int(res.pop()))
+    db=DataBase()
+    key=db.get_keyboard_time(day)
+    bot.send_message(m.chat.id, 'Test2', reply_markup=key)
+
 def start_check(message):
     bot.send_chat_action(message.chat.id, 'typing')
     bot.send_message(message.chat.id, 'Вас приветствует клиника "Mascotas"!')
@@ -140,11 +159,11 @@ def add_owner_second_name(message):
     db_worker.write_dialog_status(message.chat.id, config.states_user.get('sleep'))
     db_worker.close()
     menu_start(message)
+
+
 # ------------------------------
 
 
-@bot.message_handler(
-    func=lambda message: db_worker1.get_current_status(message.chat.id) == config.states_user.get('sleep'))
 def menu_start(message):
     bot.send_message(message.chat.id, 'Что вы хотите сделать?', reply_markup=keyboard_menu)
     bot.register_next_step_handler(message, answer_menu_start)
@@ -186,15 +205,14 @@ def menu_edit_choose_pet(message):
     db_worker = DataBase()
     if db_worker.check_pet(message):
         keyboard_pet_owner = db_worker.make_keyboard_pets(message)
-        bot.send_message(message.chat.id, 'Выберите питомца',
-                         reply_markup=keyboard_pet_owner)
-        bot.register_next_step_handler(message, menu_edit_pet_key)
+        bot.send_message(message.chat.id, 'Выберите питомца', reply_markup=keyboard_pet_owner)
+        bot.register_next_step_handler(message, menu_edit_pet_status)
     else:
         bot.send_message(message.chat.id, 'У вас нет питомцев!')
         answer_menu_edit(message)
 
 
-def menu_edit_pet_key(msg):
+def menu_edit_pet_status(msg):
     db_worker = DataBase()
     if db_worker.check_pet_owner(msg):
         db_worker.set_status_type_pet(msg)
@@ -203,10 +221,10 @@ def menu_edit_pet_key(msg):
         get_error_message(msg)
         menu_edit(msg)
 
+
 def menu_edit_pet(msg):
     bot.send_message(msg.chat.id, 'Выберите редактируемую опцию', reply_markup=keyboard_edit_pet)
     bot.register_next_step_handler(msg, answer_menu_edit_pet)
-
 
 
 def answer_menu_edit_pet(msg):
@@ -397,11 +415,11 @@ def appointment_pet(message):
     db_worker = DataBase()
     if db_worker.check_pet(message):
         keyboard_pet_owner = db_worker.make_keyboard_pets(message)
-        bot.send_message(message.chat.id, 'Выбери своего питомца (или добавь нового, любитель животных)',
+        bot.send_message(message.chat.id, 'Выберите своего питомца',
                          reply_markup=keyboard_pet_owner)
         bot.register_next_step_handler(message, answer_appointment_pet)
     else:
-        bot.send_message(message.chat.id, 'Не нахожу у тебя питомцев. Непорядок, надо добавить', reply_markup=None)
+        bot.send_message(message.chat.id, 'Не нахожу у тебя питомцев. Непорядок, надо добавить')
         add_new_pet_type(message)
     db_worker.close()
 
@@ -418,10 +436,6 @@ def answer_appointment_pet(msg):
             get_error_message(msg)
             appointment_pet(msg)
     db_worker.close()
-
-
-def get_error_message(message):
-    bot.send_message(message.chat.id, 'Не понимаю, но очень стараюсь. Пожалуйста, попробуйте заново')
 
 
 def add_new_pet_type(message):
@@ -480,11 +494,40 @@ def appointment_type(message):
     db_worker.close()
 
 
+
+
 @bot.message_handler(
     func=lambda message: db_worker1.get_current_status(message.chat.id) == config.states_user.get('appointment_type'))
-def appointment_done(message):
+def appointment_date(message):
     db_worker = DataBase()
     if db_worker.check_appointment_type(message):
+        db_worker.write_data_appointment(message)
+        bot.send_message(message.chat.id, 'Выберите дату приема', reply_markup=db_worker.get_keyboard_date())
+        db_worker.write_dialog_status(message.chat.id, config.states_user.get('appointment_date'))
+    else:
+        get_error_message(message)
+    db_worker.close()
+
+
+@bot.message_handler(
+    func=lambda message: db_worker1.get_current_status(message.chat.id) == config.states_user.get('appointment_date'))
+def appointment_time(message):
+    db_worker = DataBase()
+    if db_worker.check_appointment_date(message):
+        db_worker.write_data_appointment(message)
+        bot.send_message(message.chat.id, 'Выберите время приема', reply_markup=db_worker.get_keyboard_time())
+        db_worker.write_dialog_status(message.chat.id, config.states_user.get('appointment_time'))
+    else:
+        get_error_message(message)
+    db_worker.close()
+
+
+
+@bot.message_handler(
+    func=lambda message: db_worker1.get_current_status(message.chat.id) == config.states_user.get('appointment_time'))
+def appointment_done(message):
+    db_worker = DataBase()
+    if db_worker.check_appointment_time(message):
         db_worker.write_data_appointment(message)
         bot.send_message(message.chat.id, 'Запись успешно добавлена!')
         db_worker.write_dialog_status(message.chat.id, config.states_user.get('appointment_done'))
@@ -544,6 +587,6 @@ def search_appointment(msg):
 
 if __name__ == '__main__':
     db_worker1 = DataBase()
-    threading.Thread(target=bot.polling(none_stop=True)).start()
-    #   bot.polling(none_stop=True)
+    #threading.Thread(target=bot.polling(none_stop=True)).start()
+    bot.polling(none_stop=True)
     db_worker1.close()

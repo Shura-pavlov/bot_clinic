@@ -2,6 +2,7 @@
 import psycopg2
 import telebot
 import config
+import datetime
 
 
 class DataBase:
@@ -27,6 +28,75 @@ class DataBase:
             for n in list(self.cursor):
                 keyboard_type.add(str(n[0]))
             return keyboard_type
+
+
+    def get_keyboard_date(self):
+        keyboard = telebot.types.ReplyKeyboardMarkup(one_time_keyboard=True)
+        now = datetime.date.today()
+        with self.connection:
+            self.cursor.execute("SELECT clinicworkdatestart, clinicworkdatefihish, id_worktime "
+                                "FROM clinicworkdate WHERE clinicworkdatefihish >= %s", [now])
+            for n in list(self.cursor):
+                if n[0]<now:
+                    r=now
+                else:
+                    r=n[0]
+                interval = abs(n[1] - r)
+                for day in range(interval.days+1):
+                    day = r + datetime.timedelta(day)
+                    if self.get_count_time_intervals(n[2]) > self.get_count_dates(day):
+                        #keyboard.add(day.strftime("%d/%m") + ' (' + self.get_time_name(n[2]) + ')')
+                        keyboard.add(day.strftime("%d / %m / %Y"))
+            return keyboard
+
+    def get_time_name(self, id_work_time):
+        with self.connection:
+            self.cursor.execute("SELECT dateinfo FROM clinicworktime "
+                                "WHERE id_worktime = %s", [id_work_time])
+            return self.cursor.fetchone()[0]
+
+    def get_count_dates(self, date):
+        with self.connection:
+            self.cursor.execute("SELECT COUNT(*) FROM tshedule WHERE date = %s", [date])
+            return self.cursor.fetchone()[0]
+
+    def get_count_time_intervals(self, id_work_time):
+        with self.connection:
+            self.cursor.execute("SELECT clinicworktimestart, clinicworktimefinish, interval FROM clinicworktime "
+                                "WHERE id_worktime = %s", [id_work_time])
+            for n in list(self.cursor):
+                return (n[1].hour * 60 + n[1].minute - n[0].hour * 60 - n[0].minute)/n[2].minute
+
+    def get_keyboard_time(self, day):
+        keyboard = telebot.types.ReplyKeyboardMarkup(one_time_keyboard=True)
+        now = datetime.datetime.time(datetime.datetime.now())
+        # временная задержка
+        now = (datetime.datetime.combine(datetime.date(1, 1, 1), now) + datetime.timedelta(minutes=15)).time()
+        with self.connection:
+            self.cursor.execute("SELECT id_worktime FROM clinicworkdate WHERE clinicworkdatefihish >= %s AND "
+                                "clinicworkdatestart <= %s", [day, day])
+
+            self.cursor.execute("SELECT clinicworktimestart, clinicworktimefinish, interval FROM clinicworktime "
+                               "WHERE id_worktime = %s", [self.cursor.fetchone()[0]])
+
+            for n in list(self.cursor):
+                if n[0]<now:
+                    r = n[0]
+                    while r < now:
+                        r = (datetime.datetime.combine(datetime.date(1, 1, 1), r) + datetime.timedelta(minutes=n[2].minute)).time()
+                else:
+                    r=n[0]
+                intervals = (n[1].hour * 60 + n[1].minute - r.hour * 60 - r.minute)/n[2].minute
+                for a in range(intervals+1):
+                    time = (datetime.datetime.combine(datetime.date(1, 1, 1), r) + datetime.timedelta(minutes=n[2].minute * a)).time()
+                    if not self.check_date_time(day, time):
+                        keyboard.add(time.strftime("%H:%M"))
+            return keyboard
+
+    def check_date_time(self,date, time):
+        with self.connection:
+            self.cursor.execute("SELECT COUNT(*) FROM tshedule WHERE date = %s AND time = %s", [date, time])
+            return bool(self.cursor.fetchone()[0])
 
     def check_user(self, id):
         with self.connection:
