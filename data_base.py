@@ -124,7 +124,10 @@ class DataBase:
             self.cursor.execute("SELECT COUNT(*) FROM tappointmenttype WHERE nameappointmenttype= %s", [msg.text])
             return bool(self.cursor.fetchone()[0])
 
-    def check_appointment_date(self, a):
+    def check_appointment_date(self, date):
+        now = datetime.date.today()
+        if date < now:
+            return False
         return True
 
     def check_appointment_time(self, a):
@@ -339,7 +342,7 @@ class DataBase:
 
     def get_pet_info(self, id):
         with self.connection:
-            self.cursor.execute("SELECT petname,id_typepet FROM tpet WHERE id_pet = %s", [id])
+            self.cursor.execute("SELECT petname, id_typepet FROM tpet WHERE id_pet = %s", [id])
             for n in list(self.cursor):
                 string = str('Кличка:  ' + n[0] + '\n' + 'Вид: ' + self.get_typepet(n[1]))
             return string
