@@ -1,14 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="9e62b1cc-952f-4c31-be3c-289c4a111339" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/a7298340-db74-4f6d-97b6-2fdc5b6933f8.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources/a7298340-db74-4f6d-97b6-2fdc5b6933f8.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/a7298340-db74-4f6d-97b6-2fdc5b6933f8/storage_v2/_src_/database/d41946bputpkfi.5TWy6Q/schema/public.abK9xQ.meta" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources/a7298340-db74-4f6d-97b6-2fdc5b6933f8/storage_v2/_src_/database/d41946bputpkfi.5TWy6Q/schema/public.abK9xQ.meta" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/bot.py" beforeDir="false" afterPath="$PROJECT_DIR$/bot.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/config.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data_base.py" beforeDir="false" afterPath="$PROJECT_DIR$/data_base.py" afterDir="false" />
-    </list>
+    <list default="true" id="9e62b1cc-952f-4c31-be3c-289c4a111339" name="Default" comment="" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -283,7 +276,14 @@
       <option name="project" value="LOCAL" />
       <updated>1528805160667</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="Добавлена запись по времени и дате&#10;Исправлено отображение записей">
+      <created>1528810180249</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1528810180249</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TodoView">
@@ -356,7 +356,8 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Добавлена возможность редактировать питомца и владельца&#10;+(status_type int поле в tpet)" />
     <MESSAGE value="Добавлено составление клавиатуры под день и время" />
-    <option name="LAST_COMMIT_MESSAGE" value="Добавлено составление клавиатуры под день и время" />
+    <MESSAGE value="Добавлена запись по времени и дате&#10;Исправлено отображение записей" />
+    <option name="LAST_COMMIT_MESSAGE" value="Добавлена запись по времени и дате&#10;Исправлено отображение записей" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
