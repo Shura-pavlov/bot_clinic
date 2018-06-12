@@ -6,6 +6,7 @@
       <change beforePath="$PROJECT_DIR$/.idea/dataSources/a7298340-db74-4f6d-97b6-2fdc5b6933f8/storage_v2/_src_/database/d41946bputpkfi.5TWy6Q/schema/public.abK9xQ.meta" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources/a7298340-db74-4f6d-97b6-2fdc5b6933f8/storage_v2/_src_/database/d41946bputpkfi.5TWy6Q/schema/public.abK9xQ.meta" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/bot.py" beforeDir="false" afterPath="$PROJECT_DIR$/bot.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/config.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/data_base.py" beforeDir="false" afterPath="$PROJECT_DIR$/data_base.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -17,7 +18,7 @@
   </component>
   <component name="CoverageDataManager">
     <SUITE FILE_PATH="coverage/bot_vet$pipreqs.coverage" NAME="pipreqs Coverage Results" MODIFIED="1526661701860" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/venv/bin" />
-    <SUITE FILE_PATH="coverage/bot_vet$Unnamed.coverage" NAME="Unnamed Coverage Results" MODIFIED="1528805047412" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/bot_vet$Unnamed.coverage" NAME="Unnamed Coverage Results" MODIFIED="1528809094721" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
   <component name="DatabaseView">
     <option name="SHOW_INTERMEDIATE" value="true" />
@@ -66,11 +67,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="bot.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="bot.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/bot.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="364">
-              <caret line="86" lean-forward="true" selection-start-line="86" selection-end-line="86" />
+            <state relative-caret-position="441">
+              <caret line="60" column="44" selection-start-line="60" selection-start-column="44" selection-end-line="60" selection-end-column="44" />
               <folding>
                 <element signature="e#24#40#0" expanded="true" />
               </folding>
@@ -78,23 +79,23 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="data_base.py" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/data_base.py">
+      <file leaf-file-name="config.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/config.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="261">
-              <caret line="85" column="26" lean-forward="true" selection-start-line="85" selection-start-column="26" selection-end-line="85" selection-end-column="26" />
-              <folding>
-                <element signature="e#15#30#0" expanded="true" />
-              </folding>
+            <state relative-caret-position="255">
+              <caret line="17" column="38" lean-forward="true" selection-start-line="17" selection-start-column="38" selection-end-line="17" selection-end-column="38" />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="clinicworkdate" pinned="false" current-in-tab="false">
-        <entry file="das://a7298340-db74-4f6d-97b6-2fdc5b6933f8/database/d41946bputpkfi/schema/public/table/clinicworkdate">
-          <provider selected="true" editor-type-id="com.intellij.database.editor.DatabaseTableFileEditorProvider">
-            <state>
-              <filtering enabled="true" />
+      <file leaf-file-name="data_base.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/data_base.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="134">
+              <caret line="341" column="36" selection-start-line="341" selection-start-column="36" selection-end-line="341" selection-end-column="36" />
+              <folding>
+                <element signature="e#15#30#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -119,6 +120,8 @@
       <find>write_</find>
       <find>regi</find>
       <find>regis</find>
+      <find>tshedu</find>
+      <find>shure</find>
     </findStrings>
     <replaceStrings>
       <replace>db_worker</replace>
@@ -141,8 +144,8 @@
         <option value="$PROJECT_DIR$/models.py" />
         <option value="$PROJECT_DIR$/venv/bin/pipreqs" />
         <option value="$PROJECT_DIR$/config.py" />
-        <option value="$PROJECT_DIR$/bot.py" />
         <option value="$PROJECT_DIR$/data_base.py" />
+        <option value="$PROJECT_DIR$/bot.py" />
       </list>
     </option>
   </component>
@@ -273,7 +276,14 @@
       <option name="project" value="LOCAL" />
       <updated>1528729090914</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="Добавлено составление клавиатуры под день и время">
+      <created>1528805160667</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1528805160667</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TodoView">
@@ -296,7 +306,6 @@
       <window_info anchor="bottom" id="Version Control" order="8" />
       <window_info anchor="bottom" id="Python Console" order="10" sideWeight="0.49713877" weight="0.32923076" />
       <window_info anchor="bottom" id="Terminal" order="11" sideWeight="0.49499285" weight="0.32820514" />
-      <window_info anchor="bottom" id="Database Console" order="12" weight="0.32923076" />
       <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.16971917" />
       <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
       <window_info anchor="right" id="Database" order="4" visible="true" weight="0.20695971" />
@@ -310,6 +319,7 @@
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
+      <window_info anchor="bottom" id="Database Console" order="12" weight="0.32923076" />
       <window_info anchor="bottom" id="Find" order="1" weight="0.3271795" />
     </layout>
     <layout-to-restore>
@@ -345,7 +355,8 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Добавлена возможность редактировать питомца и владельца&#10;+(status_type int поле в tpet)" />
-    <option name="LAST_COMMIT_MESSAGE" value="Добавлена возможность редактировать питомца и владельца&#10;+(status_type int поле в tpet)" />
+    <MESSAGE value="Добавлено составление клавиатуры под день и время" />
+    <option name="LAST_COMMIT_MESSAGE" value="Добавлено составление клавиатуры под день и время" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -566,20 +577,6 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/models.py" />
     <entry file="file://$PROJECT_DIR$/requirements.txt" />
-    <entry file="das://a7298340-db74-4f6d-97b6-2fdc5b6933f8/database/d41946bputpkfi/schema/public/table/tappointment">
-      <provider selected="true" editor-type-id="com.intellij.database.editor.DatabaseTableFileEditorProvider">
-        <state>
-          <filtering enabled="true" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="das://a7298340-db74-4f6d-97b6-2fdc5b6933f8/database/d41946bputpkfi/schema/public/table/dialog_bot">
-      <provider selected="true" editor-type-id="com.intellij.database.editor.DatabaseTableFileEditorProvider">
-        <state>
-          <filtering enabled="true" />
-        </state>
-      </provider>
-    </entry>
     <entry file="das://a7298340-db74-4f6d-97b6-2fdc5b6933f8/database/d41946bputpkfi/schema/public/table/tgraft">
       <provider selected="true" editor-type-id="com.intellij.database.editor.DatabaseTableFileEditorProvider">
         <state>
@@ -636,6 +633,27 @@
         </state>
       </provider>
     </entry>
+    <entry file="das://a7298340-db74-4f6d-97b6-2fdc5b6933f8/database/d41946bputpkfi/schema/public/table/clinicworktime">
+      <provider selected="true" editor-type-id="com.intellij.database.editor.DatabaseTableFileEditorProvider">
+        <state>
+          <filtering enabled="true" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="das://a7298340-db74-4f6d-97b6-2fdc5b6933f8/database/d41946bputpkfi/schema/public/table/tshedule">
+      <provider selected="true" editor-type-id="com.intellij.database.editor.DatabaseTableFileEditorProvider">
+        <state>
+          <filtering enabled="true" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="das://a7298340-db74-4f6d-97b6-2fdc5b6933f8/database/d41946bputpkfi/schema/public/table/clinicworkdate">
+      <provider selected="true" editor-type-id="com.intellij.database.editor.DatabaseTableFileEditorProvider">
+        <state>
+          <filtering enabled="true" />
+        </state>
+      </provider>
+    </entry>
     <entry file="das://a7298340-db74-4f6d-97b6-2fdc5b6933f8/database/d41946bputpkfi/schema/public/table/tpet">
       <provider selected="true" editor-type-id="com.intellij.database.editor.DatabaseTableFileEditorProvider">
         <state>
@@ -650,28 +668,34 @@
         </state>
       </provider>
     </entry>
-    <entry file="das://a7298340-db74-4f6d-97b6-2fdc5b6933f8/database/d41946bputpkfi/schema/public/table/tshedule">
-      <provider selected="true" editor-type-id="com.intellij.database.editor.DatabaseTableFileEditorProvider">
-        <state>
-          <filtering enabled="true" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/config.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="345">
-          <caret line="23" column="26" selection-start-line="23" selection-start-column="16" selection-end-line="23" selection-end-column="26" />
+        <state relative-caret-position="255">
+          <caret line="17" column="38" lean-forward="true" selection-start-line="17" selection-start-column="38" selection-end-line="17" selection-end-column="38" />
         </state>
       </provider>
     </entry>
-    <entry file="das://a7298340-db74-4f6d-97b6-2fdc5b6933f8/database/d41946bputpkfi/schema/public/table/clinicworkdate">
+    <entry file="das://a7298340-db74-4f6d-97b6-2fdc5b6933f8/database/d41946bputpkfi/schema/public/table/dialog_bot">
       <provider selected="true" editor-type-id="com.intellij.database.editor.DatabaseTableFileEditorProvider">
         <state>
           <filtering enabled="true" />
+          <column-attributes>
+            <column name="ctid" enabled="false" />
+          </column-attributes>
         </state>
       </provider>
     </entry>
-    <entry file="das://a7298340-db74-4f6d-97b6-2fdc5b6933f8/database/d41946bputpkfi/schema/public/table/clinicworktime">
+    <entry file="file://$PROJECT_DIR$/data_base.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="134">
+          <caret line="341" column="36" selection-start-line="341" selection-start-column="36" selection-end-line="341" selection-end-column="36" />
+          <folding>
+            <element signature="e#15#30#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="das://a7298340-db74-4f6d-97b6-2fdc5b6933f8/database/d41946bputpkfi/schema/public/table/tappointment">
       <provider selected="true" editor-type-id="com.intellij.database.editor.DatabaseTableFileEditorProvider">
         <state>
           <filtering enabled="true" />
@@ -680,20 +704,10 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/bot.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="364">
-          <caret line="86" lean-forward="true" selection-start-line="86" selection-end-line="86" />
+        <state relative-caret-position="441">
+          <caret line="60" column="44" selection-start-line="60" selection-start-column="44" selection-end-line="60" selection-end-column="44" />
           <folding>
             <element signature="e#24#40#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/data_base.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="261">
-          <caret line="85" column="26" lean-forward="true" selection-start-line="85" selection-start-column="26" selection-end-line="85" selection-end-column="26" />
-          <folding>
-            <element signature="e#15#30#0" expanded="true" />
           </folding>
         </state>
       </provider>

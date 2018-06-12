@@ -55,43 +55,19 @@ keyboard_inline_appointment_delete = telebot.types.InlineKeyboardMarkup()
 button_del = telebot.types.InlineKeyboardButton(text='Отмена записи', callback_data='del')
 keyboard_inline_appointment_delete.add(button_del)
 
-keyboard_inline_appointment_delete_shure = telebot.types.InlineKeyboardMarkup()
-button_shure_in = telebot.types.InlineKeyboardButton(text='Вы уверены?', callback_data='shure')
-button_yes_in = telebot.types.InlineKeyboardButton(text='Да', callback_data='shure_yes')
-button_no_in = telebot.types.InlineKeyboardButton(text='Нет', callback_data='shure_no')
-keyboard_inline_appointment_delete_shure.add(button_no_in, button_yes_in)
-
-
-# keyboard_data_day = telebot.types.ReplyKeyboardMarkup(row_width=7)
-# cursor.execute("SELECT day FROM tday WHERE dayfull = 0")
-# for n in list(cursor):
-#     keyboard_data_day.add(str(n[0]))
-#
-# keyboard_data_time = telebot.types.ReplyKeyboardMarkup(row_width=4)
-# cursor.execute("SELECT time FROM ttime WHERE timefull = false")
-# for n in list(cursor):
-#     keyboard_data_time.add(str(n[0]))
+keyboard_inline_appointment_delete_sure = telebot.types.InlineKeyboardMarkup()
+button_yes_in = telebot.types.InlineKeyboardButton(text='Да', callback_data='sure_yes')
+button_no_in = telebot.types.InlineKeyboardButton(text='Нет', callback_data='sure_no')
+keyboard_inline_appointment_delete_sure.add(button_no_in, button_yes_in)
 # ------------------------------
+
+
 def get_error_message(message):
     bot.send_message(message.chat.id, 'Не понимаю, но очень стараюсь. Пожалуйста, попробуйте заново')
 
 
 # cleaning db
 @bot.message_handler(commands=["start"])
-def test(m):
-    db = DataBase()
-    key = db.get_keyboard_date()
-    bot.send_chat_action(m.chat.id, 'typing')
-    bot.send_message(m.chat.id, 'Test', reply_markup=key)
-    bot.register_next_step_handler(m, test_2)
-
-def test_2(m):
-    res = re.findall(r'\d+', m.text)
-    day = datetime.date(int(res.pop()), int(res.pop()), int(res.pop()))
-    db=DataBase()
-    key=db.get_keyboard_time(day)
-    bot.send_message(m.chat.id, 'Test2', reply_markup=key)
-
 def start_check(message):
     bot.send_chat_action(message.chat.id, 'typing')
     bot.send_message(message.chat.id, 'Вас приветствует клиника "Mascotas"!')
@@ -494,8 +470,6 @@ def appointment_type(message):
     db_worker.close()
 
 
-
-
 @bot.message_handler(
     func=lambda message: db_worker1.get_current_status(message.chat.id) == config.states_user.get('appointment_type'))
 def appointment_date(message):
@@ -515,12 +489,13 @@ def appointment_time(message):
     db_worker = DataBase()
     if db_worker.check_appointment_date(message):
         db_worker.write_data_appointment(message)
-        bot.send_message(message.chat.id, 'Выберите время приема', reply_markup=db_worker.get_keyboard_time())
+        res = re.findall(r'\d+', message.text)
+        day = datetime.date(int(res.pop()), int(res.pop()), int(res.pop()))
+        bot.send_message(message.chat.id, 'Выберите время приема', reply_markup=db_worker.get_keyboard_time(day))
         db_worker.write_dialog_status(message.chat.id, config.states_user.get('appointment_time'))
     else:
         get_error_message(message)
     db_worker.close()
-
 
 
 @bot.message_handler(
@@ -542,10 +517,10 @@ def appointment_done(message):
 # ------------------------------
 def appointment_see(message):
     db_worker = DataBase()
-    appointmen_list = db_worker.get_appointments(message)
-    if appointmen_list:
+    appointment_list = db_worker.get_appointments(message)
+    if appointment_list:
         message_list = []
-        for n in appointmen_list:
+        for n in appointment_list:
             message_list.append(get_appointment_info(n))
         for n in message_list:
             bot.send_message(message.chat.id, n, reply_markup=keyboard_inline_appointment_delete)
@@ -558,9 +533,11 @@ def get_appointment_info(array):
     db_worker = DataBase()
     string = ''
     string += 'Запись   # ' + str(array[0]) + '\n'
-    string += 'Питомец: ' + db_worker.get_pet_info(str(array[1])) + '\n'
-    string += db_worker.get_appointment_type(array[3]) + '\n'
-    string += 'Статус:  ' + db_worker.get_status_type(array[4])
+    string += db_worker.get_pet_info(str(array[1])) + '\n'
+    string += 'Тип приема:  ' + db_worker.get_appointment_type(array[3]) + '\n'
+    string += 'Статус:  ' + db_worker.get_status_type(array[4]) + '\n'
+    string += 'Дата:   ' + array[7].strftime("%d / %m / %Y, %A") + '\n'
+    string += 'Время:   ' + array[8].strftime("%H:%M")
     db_worker.close()
     return string
 
@@ -569,11 +546,11 @@ def get_appointment_info(array):
 def callback_inline(call):
     if call.data == 'del':
         bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=call.message.text,
-                              reply_markup=keyboard_inline_appointment_delete_shure)
-    elif call.data == 'shure_yes':
+                              reply_markup=keyboard_inline_appointment_delete_sure)
+    elif call.data == 'sure_yes':
         search_appointment(call.message.text)
         bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text="Запись отменена")
-    elif call.data == 'shure_no':
+    elif call.data == 'sure_no':
         bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=call.message.text,
                               reply_markup=keyboard_inline_appointment_delete)
 
@@ -587,6 +564,6 @@ def search_appointment(msg):
 
 if __name__ == '__main__':
     db_worker1 = DataBase()
-    #threading.Thread(target=bot.polling(none_stop=True)).start()
+    # threading.Thread(target=bot.polling(none_stop=True)).start()
     bot.polling(none_stop=True)
     db_worker1.close()

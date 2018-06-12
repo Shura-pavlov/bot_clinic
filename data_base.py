@@ -3,6 +3,7 @@ import psycopg2
 import telebot
 import config
 import datetime
+import re
 
 
 class DataBase:
@@ -57,7 +58,7 @@ class DataBase:
 
     def get_count_dates(self, date):
         with self.connection:
-            self.cursor.execute("SELECT COUNT(*) FROM tshedule WHERE date = %s", [date])
+            self.cursor.execute("SELECT COUNT(*) FROM tappointment WHERE date_appointment = %s", [date])
             return self.cursor.fetchone()[0]
 
     def get_count_time_intervals(self, id_work_time):
@@ -95,7 +96,7 @@ class DataBase:
 
     def check_date_time(self,date, time):
         with self.connection:
-            self.cursor.execute("SELECT COUNT(*) FROM tshedule WHERE date = %s AND time = %s", [date, time])
+            self.cursor.execute("SELECT COUNT(*) FROM tappointment WHERE date_appointment = %s AND time_appointment = %s", [date, time])
             return bool(self.cursor.fetchone()[0])
 
     def check_user(self, id):
@@ -122,6 +123,12 @@ class DataBase:
         with self.connection:
             self.cursor.execute("SELECT COUNT(*) FROM tappointmenttype WHERE nameappointmenttype= %s", [msg.text])
             return bool(self.cursor.fetchone()[0])
+
+    def check_appointment_date(self, a):
+        return True
+
+    def check_appointment_time(self, a):
+        return True
 
     def check_pet(self, msg):
         with self.connection:
@@ -194,6 +201,23 @@ class DataBase:
                     "UPDATE tappointment SET id_appointmenttype = %s WHERE id_statustype = %s AND id_pet IN "
                     "(SELECT id_pet FROM tpet WHERE id_owner = %s)",
                     [id_appointment_type, id_status_type, self.get_owner_id(msg)])
+
+            if self.get_current_status(msg.chat.id) == config.states_user.get('appointment_date'):
+                res = re.findall(r'\d+', msg.text)
+                day = datetime.date(int(res.pop()), int(res.pop()), int(res.pop()))
+                self.cursor.execute("SELECT id_statustype FROM tstatustype WHERE namestatustype = %s", ["Идет запись"])
+                id_status_type = self.cursor.fetchone()[0]
+                self.cursor.execute("UPDATE tappointment SET date_appointment = %s WHERE id_statustype = %s AND id_pet IN "
+                    "(SELECT id_pet FROM tpet WHERE id_owner = %s)",[day, id_status_type, self.get_owner_id(msg)])
+
+            if self.get_current_status(msg.chat.id) == config.states_user.get('appointment_time'):
+                res = re.findall(r'\d+', msg.text)
+                time = datetime.time(int(res.pop(0)), int(res.pop(0)))
+                self.cursor.execute("SELECT id_statustype FROM tstatustype WHERE namestatustype = %s", ["Идет запись"])
+                id_status_type = self.cursor.fetchone()[0]
+                self.cursor.execute("UPDATE tappointment SET time_appointment = %s WHERE id_statustype = %s AND id_pet IN "
+                                    "(SELECT id_pet FROM tpet WHERE id_owner = %s)",
+                                    [time, id_status_type, self.get_owner_id(msg)])
 
             if self.get_current_status(msg.chat.id) == config.states_user.get('appointment_done'):
                 self.cursor.execute("SELECT id_statustype FROM tstatustype WHERE namestatustype = %s",
@@ -315,7 +339,7 @@ class DataBase:
         with self.connection:
             self.cursor.execute("SELECT petname,id_typepet FROM tpet WHERE id_pet = %s", [id])
             for n in list(self.cursor):
-                string = str(n[0] + '\n' + self.get_typepet(n[1]))
+                string = str('Кличка:  ' + n[0] + '\n' + 'Вид: ' + self.get_typepet(n[1]))
             return string
 
     def delete_appointment(self, id):
