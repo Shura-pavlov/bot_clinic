@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import threading
 
 import config
 from data_base import DataBase
