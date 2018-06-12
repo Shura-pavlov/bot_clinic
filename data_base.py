@@ -280,6 +280,8 @@ class DataBase:
             self.cursor.execute("UPDATE tpet SET status_type = %s WHERE id_pet = %s", [3, id_pet])
             self.connection.commit()
 
+
+
     def get_current_status(self, id):
         with self.connection:
             if self.check_user(id):
