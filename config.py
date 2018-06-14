@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 token = '562371049:AAGXZBv_3GRYRHqaaRFhaec4q9VaQv6BSw0'
 #token = '578972565:AAFbHVfApcpNzuQw9JvR_XRf5onLtYlX2R4'
 

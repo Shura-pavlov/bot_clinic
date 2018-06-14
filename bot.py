@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import threading
 
 import config
 from data_base import DataBase
@@ -8,9 +7,9 @@ import re
 import datetime
 
 bot = telebot.TeleBot(config.token)
-# TODO: proxy-class refactoring
 # TODO: отдельно keyboards?
 # TODO: вынести отдельно диалоги на кнопках и ответах
+# TODO: добавить переходы по идалогам назад и в главное меню в любом месте
 # keyboards
 # ------------------------------
 keyboard_telephone = telebot.types.ReplyKeyboardMarkup(one_time_keyboard=True)
