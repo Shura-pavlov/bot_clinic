@@ -30,13 +30,13 @@ class DataBase:
                 keyboard_type.add(str(n[0]))
             return keyboard_type
 
-
-    def get_keyboard_date(self):
-        keyboard = telebot.types.ReplyKeyboardMarkup(one_time_keyboard=True)
+    def get_dates(self):
         now = datetime.date.today()
         with self.connection:
             self.cursor.execute("SELECT clinicworkdatestart, clinicworkdatefihish, id_worktime "
                                 "FROM clinicworkdate WHERE clinicworkdatefihish >= %s", [now])
+
+            dates_text = []
             for n in list(self.cursor):
                 if n[0]<now:
                     r=now
@@ -46,15 +46,8 @@ class DataBase:
                 for day in range(interval.days+1):
                     day = r + datetime.timedelta(day)
                     if self.get_count_time_intervals(n[2]) > self.get_count_dates(day):
-                        #keyboard.add(day.strftime("%d/%m") + ' (' + self.get_time_name(n[2]) + ')')
-                        keyboard.add(day.strftime("%d / %m / %Y"))
-            return keyboard
-
-    def get_time_name(self, id_work_time):
-        with self.connection:
-            self.cursor.execute("SELECT dateinfo FROM clinicworktime "
-                                "WHERE id_worktime = %s", [id_work_time])
-            return self.cursor.fetchone()[0]
+                        dates_text.append(day.strftime("%d / %m / %Y"))
+            return dates_text
 
     def get_count_dates(self, date):
         with self.connection:
@@ -68,41 +61,47 @@ class DataBase:
             for n in list(self.cursor):
                 return (n[1].hour * 60 + n[1].minute - n[0].hour * 60 - n[0].minute)/n[2].minute
 
-    def get_keyboard_time(self, day):
-        keyboard = telebot.types.ReplyKeyboardMarkup(one_time_keyboard=True)
-        now = datetime.datetime.time(datetime.datetime.now())
-        # временная задержка
-        now = (datetime.datetime.combine(datetime.date(1, 1, 1), now) + datetime.timedelta(minutes=15)).time()
+    def get_times(self, day):
+        minute_interval_appointment = 15
+        if day == datetime.date.today():
+            time_now = datetime.datetime.time(datetime.datetime.now())
+            time_now = (datetime.datetime.combine(datetime.date(1, 1, 1), time_now) + datetime.timedelta(
+                minutes=minute_interval_appointment)).time()
+        else:
+            time_now = datetime.time(0,0,0)
         with self.connection:
             self.cursor.execute("SELECT id_worktime FROM clinicworkdate WHERE clinicworkdatefihish >= %s AND "
                                 "clinicworkdatestart <= %s", [day, day])
-
+            id_work_time = self.cursor.fetchone()[0]
             self.cursor.execute("SELECT clinicworktimestart, clinicworktimefinish, interval FROM clinicworktime "
-                               "WHERE id_worktime = %s", [self.cursor.fetchone()[0]])
+                               "WHERE id_worktime = %s", [id_work_time])
 
+            time_texts = []
             for n in list(self.cursor):
-                if n[0]<now:
+                if n[0]<time_now:
                     r = n[0]
-                    while r < now:
-                        r = (datetime.datetime.combine(datetime.date(1, 1, 1), r) + datetime.timedelta(minutes=n[2].minute)).time()
+                    while r < time_now:
+                        r = (datetime.datetime.combine(datetime.date(1, 1, 1), r) +
+                             datetime.timedelta(minutes=n[2].minute)).time()
                 else:
                     r=n[0]
                 intervals = (n[1].hour * 60 + n[1].minute - r.hour * 60 - r.minute)/n[2].minute
-                for a in range(intervals+1):
-                    time = (datetime.datetime.combine(datetime.date(1, 1, 1), r) + datetime.timedelta(minutes=n[2].minute * a)).time()
+                for a in range(intervals):
+                    time = (datetime.datetime.combine(datetime.date(1, 1, 1), r) +
+                            datetime.timedelta(minutes=n[2].minute * a)).time()
                     if not self.check_date_time(day, time):
-                        keyboard.add(time.strftime("%H:%M"))
-            return keyboard
+                        time_texts.append(time.strftime("%H:%M"))
+            return time_texts
 
     def check_date_time(self,date, time):
         with self.connection:
-            self.cursor.execute("SELECT COUNT(*) FROM tappointment WHERE date_appointment = %s AND time_appointment = %s", [date, time])
+            self.cursor.execute("SELECT COUNT(*) FROM tappointment WHERE date_appointment = %s AND "
+                                "time_appointment = %s", [date, time])
             return bool(self.cursor.fetchone()[0])
 
     def check_user(self, id):
         with self.connection:
             self.cursor.execute("SELECT COUNT(*) FROM dialog_bot WHERE id_user = %s", [id])
-            # cursor.execute("SELECT COUNT(*) FROM towner WHERE id_chat_owner = %s AND ownerfirstname IS NOT NULL", [id])
             return bool(self.cursor.fetchone()[0])
 
     def check_pet_type(self, msg):
@@ -163,19 +162,24 @@ class DataBase:
                                     [msg.text, msg.chat.id])
 
             if status == config.states_user.get('edit_name'):
-                self.cursor.execute("UPDATE towner SET ownername = %s WHERE id_chat_owner = %s", [msg.text, msg.chat.id])
+                self.cursor.execute("UPDATE towner SET ownername = %s WHERE id_chat_owner = %s",
+                                    [msg.text, msg.chat.id])
 
             if status == config.states_user.get('edit_first_name'):
-                self.cursor.execute("UPDATE towner SET ownerfirstname = %s WHERE id_chat_owner = %s", [msg.text, msg.chat.id])
+                self.cursor.execute("UPDATE towner SET ownerfirstname = %s WHERE id_chat_owner = %s",
+                                    [msg.text, msg.chat.id])
 
             if status == config.states_user.get('edit_second_name'):
-                self.cursor.execute("UPDATE towner SET ownermiddlename = %s WHERE id_chat_owner = %s", [msg.text, msg.chat.id])
+                self.cursor.execute("UPDATE towner SET ownermiddlename = %s WHERE id_chat_owner = %s",
+                                    [msg.text, msg.chat.id])
 
             if status == config.states_user.get('edit_address'):
-                self.cursor.execute("UPDATE towner SET owneraddress = %s WHERE id_chat_owner = %s", [msg.text, msg.chat.id])
+                self.cursor.execute("UPDATE towner SET owneraddress = %s WHERE id_chat_owner = %s",
+                                    [msg.text, msg.chat.id])
 
             if status == config.states_user.get('edit_email'):
-                self.cursor.execute("UPDATE towner SET owneremail = %s WHERE id_chat_owner = %s", [msg.text, msg.chat.id])
+                self.cursor.execute("UPDATE towner SET owneremail = %s WHERE id_chat_owner = %s",
+                                    [msg.text, msg.chat.id])
 
             self.connection.commit()
 
@@ -183,7 +187,8 @@ class DataBase:
         with self.connection:
             status = self.get_current_status(msg.chat.id)
             if status == config.states_user.get('appointment_pet'):
-                self.cursor.execute("SELECT id_statustype FROM tstatustype WHERE namestatustype = %s", ["Идет запись"])
+                self.cursor.execute("SELECT id_statustype FROM tstatustype WHERE namestatustype = %s",
+                                    ["Идет запись"])
                 id_status_type = self.cursor.fetchone()[0]
                 self.cursor.execute("SELECT id_pet FROM tpet WHERE petname = %s AND id_owner = %s",
                                     [msg.text, self.get_owner_id(msg)])
@@ -195,7 +200,8 @@ class DataBase:
                 self.cursor.execute("SELECT id_appointmenttype FROM tappointmenttype WHERE nameappointmenttype = %s",
                                     [msg.text])
                 id_appointment_type = self.cursor.fetchone()[0]
-                self.cursor.execute("SELECT id_statustype FROM tstatustype WHERE namestatustype = %s", ["Идет запись"])
+                self.cursor.execute("SELECT id_statustype FROM tstatustype WHERE namestatustype = %s",
+                                    ["Идет запись"])
                 id_status_type = self.cursor.fetchone()[0]
                 self.cursor.execute(
                     "UPDATE tappointment SET id_appointmenttype = %s WHERE id_statustype = %s AND id_pet IN "
@@ -205,28 +211,32 @@ class DataBase:
             if self.get_current_status(msg.chat.id) == config.states_user.get('appointment_date'):
                 res = re.findall(r'\d+', msg.text)
                 day = datetime.date(int(res.pop()), int(res.pop()), int(res.pop()))
-                self.cursor.execute("SELECT id_statustype FROM tstatustype WHERE namestatustype = %s", ["Идет запись"])
+                self.cursor.execute("SELECT id_statustype FROM tstatustype WHERE namestatustype = %s",
+                                    ["Идет запись"])
                 id_status_type = self.cursor.fetchone()[0]
-                self.cursor.execute("UPDATE tappointment SET date_appointment = %s WHERE id_statustype = %s AND id_pet IN "
-                    "(SELECT id_pet FROM tpet WHERE id_owner = %s)",[day, id_status_type, self.get_owner_id(msg)])
+                self.cursor.execute("UPDATE tappointment SET date_appointment = %s WHERE id_statustype = %s AND "
+                                    "id_pet IN (SELECT id_pet FROM tpet WHERE id_owner = %s)",
+                                    [day, id_status_type, self.get_owner_id(msg)])
 
             if self.get_current_status(msg.chat.id) == config.states_user.get('appointment_time'):
                 res = re.findall(r'\d+', msg.text)
                 time = datetime.time(int(res.pop(0)), int(res.pop(0)))
-                self.cursor.execute("SELECT id_statustype FROM tstatustype WHERE namestatustype = %s", ["Идет запись"])
+                self.cursor.execute("SELECT id_statustype FROM tstatustype WHERE namestatustype = %s",
+                                    ["Идет запись"])
                 id_status_type = self.cursor.fetchone()[0]
-                self.cursor.execute("UPDATE tappointment SET time_appointment = %s WHERE id_statustype = %s AND id_pet IN "
-                                    "(SELECT id_pet FROM tpet WHERE id_owner = %s)",
+                self.cursor.execute("UPDATE tappointment SET time_appointment = %s WHERE id_statustype = %s AND "
+                                    "id_pet IN (SELECT id_pet FROM tpet WHERE id_owner = %s)",
                                     [time, id_status_type, self.get_owner_id(msg)])
 
             if self.get_current_status(msg.chat.id) == config.states_user.get('appointment_done'):
                 self.cursor.execute("SELECT id_statustype FROM tstatustype WHERE namestatustype = %s",
                                     ["Неподтвержденная"])
                 id_status_type_new = self.cursor.fetchone()[0]
-                self.cursor.execute("SELECT id_statustype FROM tstatustype WHERE namestatustype = %s", ["Идет запись"])
+                self.cursor.execute("SELECT id_statustype FROM tstatustype WHERE namestatustype = %s",
+                                    ["Идет запись"])
                 id_status_type_old = self.cursor.fetchone()[0]
-                self.cursor.execute("UPDATE tappointment SET id_statustype = %s WHERE id_statustype = %s AND id_pet IN "
-                                    "(SELECT id_pet FROM tpet WHERE id_owner = %s)",
+                self.cursor.execute("UPDATE tappointment SET id_statustype = %s WHERE id_statustype = %s AND "
+                                    "id_pet IN (SELECT id_pet FROM tpet WHERE id_owner = %s)",
                                     [id_status_type_new, id_status_type_old, self.get_owner_id(msg)])
             self.connection.commit()
 
@@ -294,7 +304,8 @@ class DataBase:
         with self.connection:
             self.cursor.execute("SELECT COUNT(*) FROM dialog_bot WHERE id_user = %s", [id])
             if bool(self.cursor.fetchone()[0]):
-                self.cursor.execute("UPDATE dialog_bot SET id_dialog_bot_type = %s WHERE id_user = %s", [status, id])
+                self.cursor.execute("UPDATE dialog_bot SET id_dialog_bot_type = %s WHERE id_user = %s",
+                                    [status, id])
             else:
                 self.cursor.execute("INSERT INTO dialog_bot (id_user, id_dialog_bot_type) VALUES (%s, %s)",
                                     [id, status])
@@ -303,7 +314,8 @@ class DataBase:
 
     def check_appointments(self, msg):
         with self.connection:
-            self.cursor.execute("SELECT id_statustype FROM tstatustype WHERE namestatustype = %s", ["Завершенная"])
+            self.cursor.execute("SELECT id_statustype FROM tstatustype WHERE namestatustype = %s",
+                                ["Завершенная"])
             id_status_type = self.cursor.fetchone()[0]
             self.cursor.execute("SELECT * FROM tappointment WHERE id_statustype <> %s AND id_pet IN "
                                 "(SELECT id_pet FROM tpet WHERE id_owner = %s)",
@@ -313,7 +325,8 @@ class DataBase:
     def get_appointments(self, msg):
         with self.connection:
             if self.check_appointments(msg):
-                self.cursor.execute("SELECT id_statustype FROM tstatustype WHERE namestatustype = %s", ["Завершенная"])
+                self.cursor.execute("SELECT id_statustype FROM tstatustype WHERE namestatustype = %s",
+                                    ["Завершенная"])
                 id_status_type = self.cursor.fetchone()[0]
                 self.cursor.execute("SELECT * FROM tappointment WHERE id_statustype <> %s AND id_pet IN "
                                     "(SELECT id_pet FROM tpet WHERE id_owner = %s)",
@@ -324,12 +337,14 @@ class DataBase:
 
     def get_appointment_type(self, id):
         with self.connection:
-            self.cursor.execute("SELECT nameappointmenttype FROM tappointmenttype WHERE id_appointmenttype = %s", [id])
+            self.cursor.execute("SELECT nameappointmenttype FROM tappointmenttype WHERE id_appointmenttype = %s",
+                                [id])
             return str(self.cursor.fetchone()[0])
 
     def get_status_type(self, id):
         with self.connection:
-            self.cursor.execute("SELECT namestatustype FROM tstatustype WHERE id_statustype = %s", [id])
+            self.cursor.execute("SELECT namestatustype FROM tstatustype WHERE id_statustype = %s",
+                                [id])
             return str(self.cursor.fetchone()[0])
 
     def get_typepet(self, id):

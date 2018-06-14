@@ -1,64 +1,16 @@
 # -*- coding: utf-8 -*-
 
 import config
+import keyboards
 from data_base import DataBase
 import telebot
 import re
 import datetime
 
 bot = telebot.TeleBot(config.token)
-# TODO: отдельно keyboards?
+
 # TODO: вынести отдельно диалоги на кнопках и ответах
 # TODO: добавить переходы по идалогам назад и в главное меню в любом месте
-# keyboards
-# ------------------------------
-keyboard_telephone = telebot.types.ReplyKeyboardMarkup(one_time_keyboard=True)
-button_telephone = telebot.types.KeyboardButton(text='Отправить номер телефона', request_contact=True)
-keyboard_telephone.add(button_telephone)
-
-keyboard_menu = telebot.types.ReplyKeyboardMarkup(one_time_keyboard=True)
-button_add = telebot.types.KeyboardButton(text='Записаться на прием')
-button_see = telebot.types.KeyboardButton(text='Просмотр записи')
-button_setting = telebot.types.KeyboardButton(text='Настройка')
-keyboard_menu.add(button_add, button_see, button_setting)
-
-keyboard_menu_edit = telebot.types.ReplyKeyboardMarkup(one_time_keyboard=True)
-button_pet = telebot.types.KeyboardButton(text='Редактор Питомцев')
-button_owner = telebot.types.KeyboardButton(text='Редактор Пользователя')
-button_back = telebot.types.KeyboardButton(text='Назад')
-keyboard_menu_edit.add(button_pet, button_owner, button_back)
-
-keyboard_edit_pet = telebot.types.ReplyKeyboardMarkup(one_time_keyboard=True)
-button_breed = telebot.types.KeyboardButton(text='Порода')
-button_weight = telebot.types.KeyboardButton(text='Вес')
-button_info = telebot.types.KeyboardButton(text='О питомце')
-keyboard_edit_pet.add(button_breed, button_weight,
-                      button_info, button_back)
-
-keyboard_edit_owner = telebot.types.ReplyKeyboardMarkup(one_time_keyboard=True)
-button_name = telebot.types.KeyboardButton(text='Имя')
-button_first_name = telebot.types.KeyboardButton(text='Фамилия')
-button_second_name = telebot.types.KeyboardButton(text='Отчество')
-button_address = telebot.types.KeyboardButton(text='Адрес проживания')
-button_email = telebot.types.KeyboardButton(text='Почта')
-keyboard_edit_owner.add(button_name, button_first_name,
-                        button_second_name, button_address,
-                        button_email, button_back)
-
-keyboard_gender = telebot.types.ReplyKeyboardMarkup(one_time_keyboard=True)
-button_boy = telebot.types.KeyboardButton(text='Мальчик')
-button_girl = telebot.types.KeyboardButton(text='Девочка')
-keyboard_gender.add(button_boy, button_girl)
-
-keyboard_inline_appointment_delete = telebot.types.InlineKeyboardMarkup()
-button_del = telebot.types.InlineKeyboardButton(text='Отмена записи', callback_data='del')
-keyboard_inline_appointment_delete.add(button_del)
-
-keyboard_inline_appointment_delete_sure = telebot.types.InlineKeyboardMarkup()
-button_yes_in = telebot.types.InlineKeyboardButton(text='Да', callback_data='sure_yes')
-button_no_in = telebot.types.InlineKeyboardButton(text='Нет', callback_data='sure_no')
-keyboard_inline_appointment_delete_sure.add(button_no_in, button_yes_in)
-# ------------------------------
 
 
 def get_error_message(message):
@@ -81,7 +33,9 @@ def start_check(message):
                 db_worker.delete_owner_start(message)
                 add_owner_phone(message)
 
-            if number == config.states_user.get('appointment_type'):
+            if ((number == config.states_user.get('appointment_type')) or
+                    (number == config.states_user.get('appointment_date')) or
+                    (number == config.states_user.get('appointment_time'))):
                 db_worker.delete_appointment_start(message)
 
             if ((number == config.states_user.get('pet_type')) or
@@ -101,7 +55,7 @@ def start_check(message):
 # ------------------------------
 def add_owner_phone(message):
     bot.send_message(message.chat.id, 'Вижу вас впервые! Пожалуйста, сообщите ваш телефон для продолжения работы',
-                     reply_markup=keyboard_telephone)
+                     reply_markup=keyboards.get_keyboard_telephone())
     db_worker = DataBase()
     db_worker.write_dialog_status(message.chat.id, config.states_user.get('owner_phone'))
     bot.register_next_step_handler(message, add_owner_name)
@@ -140,7 +94,7 @@ def add_owner_second_name(message):
 
 
 def menu_start(message):
-    bot.send_message(message.chat.id, 'Что вы хотите сделать?', reply_markup=keyboard_menu)
+    bot.send_message(message.chat.id, 'Что вы хотите сделать?', reply_markup=keyboards.get_keyboard_menu())
     bot.register_next_step_handler(message, answer_menu_start)
 
 
@@ -160,7 +114,7 @@ def answer_menu_start(msg):
 # edit
 # ------------------------------
 def menu_edit(msg):
-    bot.send_message(msg.chat.id, 'Что будем редактировать?', reply_markup=keyboard_menu_edit)
+    bot.send_message(msg.chat.id, 'Что будем редактировать?', reply_markup=keyboards.get_keyboard_menu_edit())
     bot.register_next_step_handler(msg, answer_menu_edit)
 
 
@@ -184,7 +138,7 @@ def menu_edit_choose_pet(message):
         bot.register_next_step_handler(message, menu_edit_pet_status)
     else:
         bot.send_message(message.chat.id, 'У вас нет питомцев!')
-        answer_menu_edit(message)
+        menu_edit(message)
 
 
 def menu_edit_pet_status(msg):
@@ -198,7 +152,7 @@ def menu_edit_pet_status(msg):
 
 
 def menu_edit_pet(msg):
-    bot.send_message(msg.chat.id, 'Выберите редактируемую опцию', reply_markup=keyboard_edit_pet)
+    bot.send_message(msg.chat.id, 'Выберите редактируемую опцию', reply_markup=keyboards.get_keyboard_edit_pet())
     bot.register_next_step_handler(msg, answer_menu_edit_pet)
 
 
@@ -270,7 +224,7 @@ def answer_edit_info(msg):
 
 
 def menu_edit_owner(msg):
-    bot.send_message(msg.chat.id, 'Выберите редактируемую опцию', reply_markup=keyboard_edit_owner)
+    bot.send_message(msg.chat.id, 'Выберите редактируемую опцию', reply_markup=keyboards.get_keyboard_edit_owner())
     bot.register_next_step_handler(msg, answer_menu_edit_owner)
 
 
@@ -440,7 +394,7 @@ def add_new_pet_gender(message):
     db_worker = DataBase()
     if db_worker.check_pet_name(message):
         db_worker.write_data_pet(message)
-        bot.send_message(message.chat.id, 'Укажите пол питомца', reply_markup=keyboard_gender)
+        bot.send_message(message.chat.id, 'Укажите пол питомца', reply_markup=keyboards.get_keyboard_gender())
         db_worker.write_dialog_status(message.chat.id, config.states_user.get('pet_gender'))
     else:
         get_error_message(message)
@@ -475,7 +429,7 @@ def appointment_date(message):
     db_worker = DataBase()
     if db_worker.check_appointment_type(message):
         db_worker.write_data_appointment(message)
-        bot.send_message(message.chat.id, 'Выберите дату приема', reply_markup=db_worker.get_keyboard_date())
+        bot.send_message(message.chat.id, 'Выберите дату приема', reply_markup=keyboards.get_keyboard_date())
         db_worker.write_dialog_status(message.chat.id, config.states_user.get('appointment_date'))
     else:
         get_error_message(message)
@@ -490,7 +444,7 @@ def appointment_time(message):
         db_worker.write_data_appointment(message)
         res = re.findall(r'\d+', message.text)
         day = datetime.date(int(res.pop()), int(res.pop()), int(res.pop()))
-        bot.send_message(message.chat.id, 'Выберите время приема', reply_markup=db_worker.get_keyboard_time(day))
+        bot.send_message(message.chat.id, 'Выберите время приема', reply_markup=keyboards.get_keyboard_time(day))
         db_worker.write_dialog_status(message.chat.id, config.states_user.get('appointment_time'))
     else:
         get_error_message(message)
@@ -501,7 +455,10 @@ def appointment_time(message):
     func=lambda message: db_worker1.get_current_status(message.chat.id) == config.states_user.get('appointment_time'))
 def appointment_done(message):
     db_worker = DataBase()
-    if db_worker.check_appointment_time(message):
+    if message.text == u'Назад':
+        bot.send_message(message.chat.id, 'Выберите дату приема', reply_markup=keyboards.get_keyboard_date())
+        db_worker.write_dialog_status(message.chat.id, config.states_user.get('appointment_date'))
+    elif db_worker.check_appointment_time(message):
         db_worker.write_data_appointment(message)
         bot.send_message(message.chat.id, 'Запись успешно добавлена!')
         db_worker.write_dialog_status(message.chat.id, config.states_user.get('appointment_done'))
@@ -522,7 +479,7 @@ def appointment_see(message):
         for n in appointment_list:
             message_list.append(get_appointment_info(n))
         for n in message_list:
-            bot.send_message(message.chat.id, n, reply_markup=keyboard_inline_appointment_delete)
+            bot.send_message(message.chat.id, n, reply_markup=keyboards.get_keyboard_inline_appointment_delete())
     else:
         bot.send_message(message.chat.id, 'Не найдено записей!')
     db_worker.close()
@@ -545,13 +502,13 @@ def get_appointment_info(array):
 def callback_inline(call):
     if call.data == 'del':
         bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=call.message.text,
-                              reply_markup=keyboard_inline_appointment_delete_sure)
+                              reply_markup=keyboards.get_keyboard_inline_appointment_delete_sure())
     elif call.data == 'sure_yes':
         search_appointment(call.message.text)
         bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text="Запись отменена")
     elif call.data == 'sure_no':
         bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=call.message.text,
-                              reply_markup=keyboard_inline_appointment_delete)
+                              reply_markup=keyboards.get_keyboard_inline_appointment_delete())
 
 
 def search_appointment(msg):
