@@ -364,14 +364,13 @@ class DataBase:
             self.cursor.execute("DELETE FROM tappointment WHERE id_appointment = %s", [id])
             self.connection.commit()
 
-    def make_keyboard_pets(self, msg):
+    def get_pets(self, msg):
         with self.connection:
-            keyboard_pet_owner = telebot.types.ReplyKeyboardMarkup(row_width=2)
             self.cursor.execute("SELECT petname FROM tpet WHERE id_owner = %s", [self.get_owner_id(msg)])
+            pet_texts=[]
             for n in list(self.cursor):
-                keyboard_pet_owner.add(str(str(n[0])))
-            keyboard_pet_owner.add('Добавить нового питомца')
-            return keyboard_pet_owner
+                pet_texts.append(str(n[0]))
+            return pet_texts
 
     def delete_owner_start(self, msg):
         with self.connection:
