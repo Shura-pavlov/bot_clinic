@@ -125,9 +125,6 @@ class DataBase:
             return bool(self.cursor.fetchone()[0])
 
     def check_appointment_date(self, date):
-        now = datetime.date.today()
-        if date < now:
-            return False
         return True
 
     def check_appointment_time(self, a):
