@@ -11,7 +11,6 @@ class DataBase:
         self.connection = psycopg2.connect(dbname='d41946bputpkfi', user='tdbinirjdxxdzf',
                                            password='1ad38e225b4cc064ebcdfa76d4934fbe116bca6cec6bb5e5562d148e94661d8c',
                                            host='ec2-54-75-239-237.eu-west-1.compute.amazonaws.com')
-
         self.cursor = self.connection.cursor()
 
     def get_keyboard_pet(self):
@@ -101,7 +100,7 @@ class DataBase:
 
     def check_user(self, id):
         with self.connection:
-            self.cursor.execute("SELECT COUNT(*) FROM dialog_bot WHERE id_user = %s", [id])
+            self.cursor.execute("SELECT COUNT(*) FROM towner WHERE id_chat_owner = %s", [id])
             return bool(self.cursor.fetchone()[0])
 
     def check_pet_type(self, msg):
@@ -150,8 +149,8 @@ class DataBase:
         with self.connection:
             status = self.get_current_status(msg.chat.id)
             if status == config.states_user.get('owner_phone'):
-                self.cursor.execute("INSERT INTO towner (id_chat_owner, ownernumber) VALUES (%s, %s)",
-                                    [msg.chat.id, msg.contact.phone_number])
+                self.cursor.execute("UPDATE towner SET ownernumber = %s WHERE id_chat_owner = %s",
+                                    [msg.contact.phone_number, msg.chat.id])
 
             if status == config.states_user.get('owner_name'):
                 self.cursor.execute("UPDATE towner SET ownername = %s WHERE id_chat_owner = %s",
@@ -295,19 +294,19 @@ class DataBase:
     def get_current_status(self, id):
         with self.connection:
             if self.check_user(id):
-                self.cursor.execute("SELECT id_dialog_bot_type FROM dialog_bot WHERE id_user = %s", [id])
+                self.cursor.execute("SELECT id_status_type FROM towner WHERE id_chat_owner = %s", [id])
                 return self.cursor.fetchone()[0]
             else:
                 return 0
 
     def write_dialog_status(self, id, status):
         with self.connection:
-            self.cursor.execute("SELECT COUNT(*) FROM dialog_bot WHERE id_user = %s", [id])
+            self.cursor.execute("SELECT COUNT(*) FROM towner WHERE id_chat_owner = %s", [id])
             if bool(self.cursor.fetchone()[0]):
-                self.cursor.execute("UPDATE dialog_bot SET id_dialog_bot_type = %s WHERE id_user = %s",
+                self.cursor.execute("UPDATE towner SET id_status_type = %s WHERE id_chat_owner = %s",
                                     [status, id])
             else:
-                self.cursor.execute("INSERT INTO dialog_bot (id_user, id_dialog_bot_type) VALUES (%s, %s)",
+                self.cursor.execute("INSERT INTO towner (id_chat_owner, id_status_type) VALUES (%s, %s)",
                                     [id, status])
 
             self.connection.commit()
